@@ -4,8 +4,7 @@
 
 ### Create book
 
-WHEN I create a book
-
+WHEN I create a book  
 THEN it is available
 
 ### Borrow book
