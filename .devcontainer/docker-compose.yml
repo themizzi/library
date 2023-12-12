@@ -1,0 +1,38 @@
+version: '3'
+
+services:
+  app:
+    build: 
+      context: .
+      dockerfile: Dockerfile
+    environment:
+      - DB_HOST=db
+      - DB_USER=postgres
+      - DB_PASSWORD=postgres
+      - DB_NAME=postgres
+      - DB_PORT=5432
+    volumes:
+      - /var/run/docker.sock:/var/run/docker-host.sock 
+      - ../..:/workspaces:cached
+    command: sleep infinity
+  db:
+    image: postgres:16.1
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: postgres
+    volumes:
+      - db-data:/var/lib/postgresql/data
+    restart: always
+  pgadmin:
+    image: dpage/pgadmin4
+    environment:
+      PGADMIN_DEFAULT_EMAIL: test@test.com
+      PGADMIN_DEFAULT_PASSWORD: test
+      PGADMIN_CONFIG_SERVER_MODE: 'False'
+      PGADMIN_MASTER_PASSWORD: test
+    volumes:
+      - ./servers.json:/pgadmin4/servers.json
+      - ./pgpassfile:/pgpassfile
+volumes:
+  db-data: {}
