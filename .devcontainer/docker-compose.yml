@@ -14,6 +14,7 @@ services:
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
       - ../..:/workspaces:cached
+      - ~/.ssh:/root/.ssh:cached
     command: sleep infinity
   db:
     image: postgres:16.1
