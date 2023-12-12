@@ -11,7 +11,7 @@ export class TypeOrmBookRepository implements BookRepository {
   ) {}
 
   async save(book: Book) {
-    await this.bookRepository.save(book);
+    return this.bookRepository.save(book);
   }
 
   async findOne(id: string): Promise<Book | null> {

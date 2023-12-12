@@ -1,3 +1,4 @@
+import { Expose } from 'class-transformer';
 import {Column, Entity, PrimaryGeneratedColumn} from 'typeorm';
 
 export enum BookStatus {
@@ -20,12 +21,15 @@ export class BookNotBorrowedError extends Error {
 @Entity()
 export class Book {
   @PrimaryGeneratedColumn('uuid')
+  @Expose()
   readonly id?: string;
 
   @Column({type: 'varchar'})
+  @Expose()
   readonly title: string;
 
   @Column({type: 'varchar'})
+  @Expose()
   readonly author: string;
 
   @Column({
@@ -35,12 +39,14 @@ export class Book {
     name: 'status',
   })
   private _status: BookStatus = BookStatus.AVAILABLE;
+  @Expose()
   get status(): BookStatus {
     return this._status;
   }
 
   @Column({type: 'varchar', nullable: true, name: 'borrowedBy'})
   private _borrowedBy?: string;
+  @Expose()
   get borrowedBy(): string | undefined {
     return this._borrowedBy;
   }

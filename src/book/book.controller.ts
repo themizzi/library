@@ -1,11 +1,22 @@
 import {
   BadRequestException,
+  Body,
+  ClassSerializerInterceptor,
   Controller,
   NotFoundException,
+  Param,
   Post,
   Put,
+  SerializeOptions,
+  UseInterceptors,
 } from '@nestjs/common';
+import {
+  ApiBadRequestResponse,
+  ApiCreatedResponse,
+  ApiProperty,
+} from '@nestjs/swagger';
 import {IsDefined, IsString} from 'class-validator';
+import {Book} from './book';
 import {
   BookNotBorrowedError,
   BookNotFoundError,
@@ -15,32 +26,51 @@ import {
 export class CreateBookRequest {
   @IsDefined()
   @IsString()
+  @ApiProperty()
   title!: string;
 
   @IsDefined()
   @IsString()
+  @ApiProperty()
   author!: string;
 }
 
 export class BorrowBookRequest {
   @IsDefined()
   @IsString()
+  @ApiProperty()
   name!: string;
 }
 
 @Controller('book')
+@UseInterceptors(ClassSerializerInterceptor)
+@SerializeOptions({
+  excludeExtraneousValues: true,
+})
 export class BookController {
   constructor(private readonly bookService: BookService) {}
 
   @Post()
-  async createBook(): Promise<void> {
-    await this.bookService.createBook('The Hobbit', 'J.R.R. Tolkien');
+  @ApiCreatedResponse({
+    description: 'The book has been successfully created.',
+  })
+  @ApiBadRequestResponse({description: 'Bad request.'})
+  async createBook(
+    @Body() createBookRequest: CreateBookRequest
+  ): Promise<Book> {
+    return await this.bookService.createBook(
+      createBookRequest.title,
+      createBookRequest.author
+    );
   }
 
   @Put(':id/borrow')
-  async borrowBook(): Promise<void> {
+  async borrowBook(
+    @Param('id') id: string,
+    @Body() borrowBookRequest: BorrowBookRequest
+  ): Promise<Book> {
     try {
-      await this.bookService.borrowBook('1', 'John Doe');
+      return await this.bookService.borrowBook(id, borrowBookRequest.name);
     } catch (e) {
       if (e instanceof BookNotBorrowedError) {
         throw new BadRequestException(e.message);
@@ -52,9 +82,9 @@ export class BookController {
   }
 
   @Put(':id/return')
-  async returnBook(): Promise<void> {
+  async returnBook(@Param('id') id: string): Promise<Book> {
     try {
-      await this.bookService.returnBook('1');
+      return this.bookService.returnBook(id);
     } catch (e) {
       if (e instanceof BookNotBorrowedError) {
         throw new BadRequestException(e.message);

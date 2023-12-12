@@ -1,7 +1,8 @@
+import {Injectable} from '@nestjs/common';
 import {Book} from './book';
 
 export abstract class BookRepository {
-  abstract save(book: Book): Promise<void>;
+  abstract save(book: Book): Promise<Book>;
   abstract findOne(id: string): Promise<Book | null>;
 }
 
@@ -23,20 +24,18 @@ export class BookNotBorrowedError extends Error {
   }
 }
 
+@Injectable()
 export class BookService {
-  private bookRepository: BookRepository;
-
-  constructor(bookRepository: BookRepository) {
+  constructor(private readonly bookRepository: BookRepository) {
     this.bookRepository = bookRepository;
   }
 
   async createBook(title: string, author: string): Promise<Book> {
     const book = new Book(title, author);
-    await this.bookRepository.save(book);
-    return book;
+    return this.bookRepository.save(book);
   }
 
-  async borrowBook(bookId: string, name: string): Promise<void> {
+  async borrowBook(bookId: string, name: string): Promise<Book> {
     const book = await this.bookRepository.findOne(bookId);
 
     if (!book) {
@@ -48,10 +47,10 @@ export class BookService {
     } catch (e) {
       throw new BookAlreadyBorrowedError(bookId);
     }
-    await this.bookRepository.save(book);
+    return this.bookRepository.save(book);
   }
 
-  async returnBook(bookId: string): Promise<void> {
+  async returnBook(bookId: string): Promise<Book> {
     const book = await this.bookRepository.findOne(bookId);
 
     if (!book) {
@@ -63,6 +62,6 @@ export class BookService {
     } catch (e) {
       throw new BookNotBorrowedError(bookId);
     }
-    await this.bookRepository.save(book);
+    return this.bookRepository.save(book);
   }
 }
